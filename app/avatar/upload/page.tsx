@@ -7,8 +7,9 @@ import { useState, useRef } from 'react';
 export default function AvatarUploadPage() {
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [blob, setBlob] = useState<PutBlobResult | null>(null);
-  const [secret, setSecret] = useState(''); // State to hold the secret word input
-  const correctSecret = "heqing"; // This should be the secret word you expect
+  const [secret, setSecret] = useState('');
+  const [fileName, setFileName] = useState(''); // State to hold the file name
+  const correctSecret = "hh";
 
   return (
     <>
@@ -18,9 +19,9 @@ export default function AvatarUploadPage() {
         onSubmit={async (event) => {
           event.preventDefault();
 
-          if (secret !== correctSecret) {
+          if (secret !== correctSecret) { // Ensure this secret is managed securely in a real application
             alert('Incorrect secret word!');
-            return; // Prevent upload if the secret word is incorrect
+            return;
           }
 
           if (!inputFileRef.current?.files) {
@@ -28,6 +29,7 @@ export default function AvatarUploadPage() {
           }
 
           const file = inputFileRef.current.files[0];
+          setFileName(file.name); // Set file name when file is selected
 
           const newBlob = await upload(file.name, file, {
             access: 'public',
@@ -36,25 +38,29 @@ export default function AvatarUploadPage() {
 
           setBlob(newBlob);
         }}
+        style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px' }}
       >
         <input
-          type="password" // Use password type to hide input
+          type="password"
           placeholder="Enter secret word"
           value={secret}
-          onChange={(e) => setSecret(e.target.value)} // Update state on input change
+          onChange={(e) => setSecret(e.target.value)}
           required
         />
         <input
           name="file"
           ref={inputFileRef}
           type="file"
+          onChange={event => setFileName(event.target.files?.[0]?.name || '')}
           required
         />
         <button type="submit">Upload</button>
       </form>
+
       {blob && (
-        <div>
-          Blob url: <a href={blob.url}>{blob.url}</a>
+        <div style={{ marginTop: '20px' }}>
+          <strong>Uploaded File:</strong> {fileName}
+          <div>Blob URL: <a href={blob.url} target="_blank" rel="noopener noreferrer">{blob.url}</a></div>
         </div>
       )}
     </>
